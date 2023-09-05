@@ -25,8 +25,8 @@
 //! ```
 //!
 //! [display-interface-spi crate]: https://crates.io/crates/display-interface-spi
-use embedded_hal::delay::DelayUs;
-use embedded_hal::digital::OutputPin;
+use embedded_hal::blocking::delay::DelayUs;
+use embedded_hal::digital::v2::OutputPin;
 
 use core::iter::once;
 use display_interface::DataFormat::{U16BEIter, U8Iter};
@@ -145,7 +145,7 @@ where
         _display_size: SIZE,
     ) -> Result<Self>
     where
-        DELAY: DelayUs,
+        DELAY: DelayUs<u16>,
         SIZE: DisplaySize,
         MODE: Mode,
     {
@@ -159,7 +159,7 @@ where
 
         // Do hardware reset by holding reset low for at least 10us
         ili9341.reset.set_low().map_err(|_| DisplayError::RSError)?;
-        let _ = delay.delay_ms(1);
+        let _ = delay.delay_us(1);
         // Set high for normal operation
         ili9341
             .reset
@@ -168,14 +168,14 @@ where
 
         // Wait 5ms after reset before sending commands
         // and 120ms before sending Sleep Out
-        let _ = delay.delay_ms(5);
+        let _ = delay.delay_us(5);
 
         // Do software reset
         ili9341.command(Command::SoftwareReset, &[])?;
 
         // Wait 5ms after reset before sending commands
         // and 120ms before sending Sleep Out
-        let _ = delay.delay_ms(120);
+        let _ = delay.delay_us(120);
 
         ili9341.set_orientation(mode)?;
 
@@ -185,7 +185,7 @@ where
         ili9341.sleep_mode(ModeState::Off)?;
 
         // Wait 5ms after Sleep Out before sending commands
-        let _ = delay.delay_ms(5);
+        let _ = delay.delay_us(5);
 
         ili9341.display_mode(ModeState::On)?;
 
